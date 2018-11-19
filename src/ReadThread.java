@@ -1,29 +1,28 @@
+import java.util.concurrent.TimeUnit;
+
 public class ReadThread implements Runnable {
 
     int sum = 0;
 
     @Override
     public void run() {
-        System.out.println(Thread.currentThread().getName() + " started");
         try {
+            BlockingQueueImpl.threadPreparation();
             while (BlockingQueueImpl.flag) {
-                int readItem = BlockingQueueImpl.queue.take();
-                //System.out.println(Thread.currentThread().getName() + " take " + readItem);
+                int readItem = BlockingQueueImpl.queue.poll(2000, TimeUnit.MILLISECONDS);
+                //System.out.println(Thread.currentThread().getName() + " read " + readItem);
                 sum += readItem;
                 System.out.println("Sum of " + Thread.currentThread().getName() + " counts " + sum);
 
-                if (sum >= 100) {
-                    System.out.println("Reading thread " + Thread.currentThread().getName() + " is winner");
+                if (sum >= 100 && BlockingQueueImpl.flag) {
                     BlockingQueueImpl.flag = false;
-                    BlockingQueueImpl.queue.clear();
+                    System.out.println("Reading thread " + Thread.currentThread().getName() + " is winner");
                 }
-                Thread.sleep(200);
+                Thread.sleep(100);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException | NullPointerException e) {
+            System.out.println("Interrupted: " + Thread.currentThread().getName());
         }
-
-        System.out.println("Finished" + Thread.currentThread().getName());
     }
 
 }
