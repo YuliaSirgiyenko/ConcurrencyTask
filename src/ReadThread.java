@@ -1,15 +1,21 @@
+import java.util.concurrent.TimeUnit;
+
 public class ReadThread implements Runnable {
 
     int sum = 0;
 
     @Override
     public void run() {
-        System.out.println(Thread.currentThread().getName() + " started");
+        try {
+            BlockingQueueImpl.threadPreparation();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                int readItem = BlockingQueueImpl.queue.take();
-                //System.out.println(Thread.currentThread().getName() + " take " + readItem);
+                int readItem = BlockingQueueImpl.queue.poll(2000, TimeUnit.MILLISECONDS);
+                //System.out.println(Thread.currentThread().getName() + " read " + readItem);
                 sum += readItem;
                 System.out.println("Sum of " + Thread.currentThread().getName() + " counts " + sum);
 
@@ -18,11 +24,10 @@ public class ReadThread implements Runnable {
                     for (Thread thread : BlockingQueueImpl.threadsPool) {
                         thread.interrupt();
                     }
-                    BlockingQueueImpl.queue.clear();
                 }
                 Thread.sleep(200);
-            } catch (InterruptedException e) {
-                System.out.println(Thread.currentThread().getName() + " is interrupted");
+            } catch (InterruptedException | NullPointerException e) {
+                System.out.println("Interrupted: " + Thread.currentThread().getName());
                 Thread.currentThread().interrupt();
             }
         }
