@@ -1,27 +1,40 @@
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ReadThread implements Runnable {
 
     int sum = 0;
+    String threadName;
+    CountDownLatch countDownLatch;
+    BlockingQueue<Integer> queue;
+
+    ReadThread(String name, CountDownLatch countDownLatch, BlockingQueue<Integer> queue) {
+        this.threadName = name;
+        System.out.println(threadName + " ready for start");
+        this.countDownLatch = countDownLatch;
+        countDownLatch.countDown();
+        this.queue = queue;
+    }
 
     @Override
     public void run() {
         try {
-            BlockingQueueImpl.threadPreparation();
-            while (BlockingQueueImpl.flag) {
-                int readItem = BlockingQueueImpl.queue.poll(2000, TimeUnit.MILLISECONDS);
-                //System.out.println(Thread.currentThread().getName() + " read " + readItem);
+            countDownLatch.await();
+            while (ThreadManager.flag) {
+                int readItem = queue.poll(2000, TimeUnit.MILLISECONDS);
+                //System.out.println(threadName + " read " + readItem);
                 sum += readItem;
-                System.out.println("Sum of " + Thread.currentThread().getName() + " counts " + sum);
+                System.out.println("Sum of " + threadName + " counts " + sum);
 
-                if (sum >= 100 && BlockingQueueImpl.flag) {
-                    BlockingQueueImpl.flag = false;
-                    System.out.println("Reading thread " + Thread.currentThread().getName() + " is winner");
+                if (sum >= 100 && ThreadManager.flag) {
+                    ThreadManager.flag = false;
+                    System.out.println("Reading thread " + threadName + " is winner");
                 }
                 Thread.sleep(100);
             }
         } catch (InterruptedException | NullPointerException e) {
-            System.out.println("Interrupted: " + Thread.currentThread().getName());
+            System.out.println("Interrupted: " + threadName);
         }
     }
 

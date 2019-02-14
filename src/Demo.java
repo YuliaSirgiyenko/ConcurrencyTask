@@ -1,9 +1,10 @@
 public class Demo {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
-        BlockingQueueImpl blockingQueue = new BlockingQueueImpl();
-        blockingQueue.init();
+        ThreadManager threadManager = new ThreadManager(5,
+                2, 10);
+        threadManager.launchAllThreads();
 
     }
 
